@@ -30,4 +30,16 @@ const favCount = document.getElementById("fav-count");
 const navHome = document.getElementById("nav-home");
 const navFavorites = document.getElementById("nav-favorites");
 
+// ================ UI STATE ================
 
+function showState(stateName){
+    errorMsg.classList.remove("show");
+    loader.classList.remove("show");
+    emptyState.classList.remove("show");
+    noResults.classList.remove("show");
+
+    if (stateName === "error") errorMsg.classList.add("show");
+    else if (stateName === "loading") loader.classList.add("show");
+    else if (stateName === "empty") emptyState.classList.add("show");
+    else if (stateName === "noResults") noResults.classList.add("show");
+}
