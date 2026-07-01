@@ -70,6 +70,8 @@ searchForm.addEventListener("submit", (e) => {
   searchMovies(title);
 });
 
+// -------------- movie searching --------------
+
 async function searchMovies(title) {
   showState("loading");
   try {
@@ -84,15 +86,49 @@ async function searchMovies(title) {
     if (data.Response === "False") {
       showState("noResults");
       currentMovies = [];
+      moviesGrid.innerHTML = "";
     } else {
       currentMovies = data.Search || [];
-      loader.classList.remove("show");
-      //still missing rendering moviesGrid;
+      renderMovies(currentMovies, moviesGrid);
+      showState("results");
     }
   } catch (error) {
     console.log("Error: ", error);
     showState("fetchError");
     currentMovies = [];
+    moviesGrid.innerHTML = "";
   }
-  console.log(currentMovies)
+  console.log(currentMovies);
+}
+
+// -------------- create movie card --------------
+
+function createCard(movie) {
+  const card = document.createElement("div");
+  card.classList.add("movie-card");
+
+  const posterUrl =
+    // here check if movie.Poster  got value which means true the check if it !== "N/A".
+    movie.Poster && movie.Poster !== "N/A" 
+      ? movie.Poster
+      : "./img/default_poster.jpg";
+  const posterHTML = posterUrl
+    ? `<img src="${posterUrl}" alt="${movie.Title}" class="movie-poster">`
+    : `<div class="movie-poster">🎬</div>`;
+
+  card.innerHTML = `${posterHTML}
+    <button class="fav-btn active" > 
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+    </button>
+    <div class="movie-info">
+        <h3 class="movie-title">${movie.Title}</h3>
+        <div class="movie-meta">
+            <span class="movie-year">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+                ${movie.Year}
+            </span>
+        </div>
+    </div>`;
+
+  return card;
 }
