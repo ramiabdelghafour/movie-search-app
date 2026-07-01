@@ -103,6 +103,17 @@ async function searchMovies(title) {
 
 // -------------- create movie card --------------
 
+function renderMovies(movies, container) {
+  container.innerHTML = ``;
+
+  movies.forEach((movie) => {
+    const card = createCard(movie);
+    container.appendChild(card);
+  });
+}
+
+// -------------- create movie card --------------
+
 function createCard(movie) {
   const card = document.createElement("div");
   card.classList.add("movie-card");
