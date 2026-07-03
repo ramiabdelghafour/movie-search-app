@@ -119,12 +119,18 @@ function createCard(movie) {
   card.classList.add("movie-card");
 
   const posterUrl =
-    // here check if movie.Poster  got value which means true the check if it !== "N/A".
-    movie.Poster && movie.Poster !== "N/A" 
+    // here check if movie.Poster got value which means true the check if it !== "N/A".
+    movie.Poster && movie.Poster !== "N/A"
       ? movie.Poster
       : "./img/default_poster.jpg";
+
   const posterHTML = posterUrl
-    ? `<img src="${posterUrl}" alt="${movie.Title}" class="movie-poster">`
+    ? `  <img
+    src="${posterUrl}"
+    alt="${movie.Title}"
+    class="movie-poster"
+    onerror="this.onerror=null; this.src='./img/default_poster.jpg';">
+  `
     : `<div class="movie-poster">🎬</div>`;
 
   card.innerHTML = `${posterHTML}
