@@ -36,6 +36,7 @@ const navFavorites = document.getElementById("nav-favorites");
 // =====================================
 
 let currentMovies = [];
+let favorites = JSON.parse(localStorage.getItem('cineFavorites')) || [];
 
 // ================ UI STATE ================
 
@@ -67,6 +68,7 @@ searchForm.addEventListener("submit", (e) => {
     return;
   }
 
+  moviesGrid.innerHTML = "";
   searchMovies(title);
 });
 
@@ -93,30 +95,29 @@ async function searchMovies(title) {
       showState("results");
     }
   } catch (error) {
-    console.log("Error: ", error);
     showState("fetchError");
     currentMovies = [];
     moviesGrid.innerHTML = "";
   }
-  console.log(currentMovies);
 }
 
-// -------------- create movie card --------------
+// -------------- display movies cards --------------
 
 function renderMovies(movies, container) {
   container.innerHTML = ``;
 
   movies.forEach((movie) => {
-    const card = createCard(movie);
+    const card = createMovieCard(movie);
     container.appendChild(card);
   });
 }
 
 // -------------- create movie card --------------
 
-function createCard(movie) {
+function createMovieCard(movie) {
   const card = document.createElement("div");
   card.classList.add("movie-card");
+  card.dataset.imdbId = movie.imdbID;
 
   const posterUrl =
     // here check if movie.Poster got value which means true the check if it !== "N/A".
@@ -124,6 +125,7 @@ function createCard(movie) {
       ? movie.Poster
       : "./img/default_poster.jpg";
 
+  //  prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
   const posterHTML = posterUrl
     ? `  <img
     src="${posterUrl}"
@@ -133,8 +135,9 @@ function createCard(movie) {
   `
     : `<div class="movie-poster">🎬</div>`;
 
+  // card's HTML
   card.innerHTML = `${posterHTML}
-    <button class="fav-btn active" > 
+    <button class="fav-btn ${isFavorite ? "active" : ""}" > 
         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
     </button>
     <div class="movie-info">
@@ -148,4 +151,38 @@ function createCard(movie) {
     </div>`;
 
   return card;
+}
+
+moviesGrid.addEventListener("click", (e) => {
+  const favButton = e.target.closest(".fav-btn");
+
+  if (!favButton) return;
+
+  const card = favButton.closest(".movie-card");
+  const movieId = card.dataset.imdbId;
+
+  toggleFavorite(movieId);
+});
+
+function toggleFavorite(movieId) {
+  const index = favorites.findIndex(
+    (movie) => movie.imdbID === movieId
+  );
+
+  const movie = currentMovies.find(
+    (movie) => movie.imdbID === movieId
+  );
+
+  if (index === -1) {
+    favorites.push(movie);
+  } else {
+    favorites.splice(index, 1);
+  }
+
+  localStorage.setItem(
+    "cineFavorites",
+    JSON.stringify(favorites)
+  );
+
+  renderMovies(currentMovies, moviesGrid);
 }
