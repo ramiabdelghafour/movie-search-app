@@ -36,7 +36,10 @@ const navFavorites = document.getElementById("nav-favorites");
 // =====================================
 
 let currentMovies = [];
-let favorites = JSON.parse(localStorage.getItem('cineFavorites')) || [];
+let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
+
+console.log(`${BASE_URL}?apikey=${API_KEY}&s=batman`);
+console.log(`${BASE_URL}?apikey=${API_KEY}&i=tt0372784&plot=full`);
 
 // ================ UI STATE ================
 
@@ -107,14 +110,15 @@ function renderMovies(movies, container) {
   container.innerHTML = ``;
 
   movies.forEach((movie) => {
-    const card = createMovieCard(movie);
+    const isfav = favorites.some((f) => f.imdbID === movie.imdbID); //some() = true or fals of if isfave is true so isfavorite is active
+    const card = createMovieCard(movie, isfav);
     container.appendChild(card);
   });
 }
 
 // -------------- create movie card --------------
 
-function createMovieCard(movie) {
+function createMovieCard(movie, isFavorite) {
   const card = document.createElement("div");
   card.classList.add("movie-card");
   card.dataset.imdbId = movie.imdbID;
@@ -152,7 +156,6 @@ function createMovieCard(movie) {
 
   return card;
 }
-
 moviesGrid.addEventListener("click", (e) => {
   const favButton = e.target.closest(".fav-btn");
 
@@ -161,28 +164,24 @@ moviesGrid.addEventListener("click", (e) => {
   const card = favButton.closest(".movie-card");
   const movieId = card.dataset.imdbId;
 
-  toggleFavorite(movieId);
+  toggleFavorite(movieId, favButton);
 });
 
-function toggleFavorite(movieId) {
-  const index = favorites.findIndex(
-    (movie) => movie.imdbID === movieId
-  );
+function toggleFavorite(movieId, favBtn) {
+  const index = favorites.findIndex((movie) => movie.imdbID === movieId);
 
-  const movie = currentMovies.find(
-    (movie) => movie.imdbID === movieId
-  );
+  const movie = currentMovies.find((movie) => movie.imdbID === movieId);
 
   if (index === -1) {
+    // add to favorites
     favorites.push(movie);
   } else {
+    // remove from favorites
     favorites.splice(index, 1);
   }
 
-  localStorage.setItem(
-    "cineFavorites",
-    JSON.stringify(favorites)
-  );
+  localStorage.setItem("cineFavorites", JSON.stringify(favorites));
 
-  renderMovies(currentMovies, moviesGrid);
+  // Update the heart button
+  favBtn.classList.toggle("active");
 }
