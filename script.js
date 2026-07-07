@@ -5,6 +5,12 @@
 const API_KEY = "a1e05814";
 const BASE_URL = "https://www.omdbapi.com/";
 
+function getPosterUrl(movie){
+  if(movie.Poster && movie.Poster !== "N/A"){
+    movie.Poster
+  } else "./img/default_poster.jpg";
+}
+
 // ===================================================
 //                  DOM ELEMENTS
 // ===================================================
@@ -126,12 +132,9 @@ function createMovieCard(movie, isFavorite) {
   card.classList.add("movie-card");
   card.dataset.imdbId = movie.imdbID;
 
-  const posterUrl =
-    // here check if movie.Poster got value which means true the check if it !== "N/A".
-    movie.Poster && movie.Poster !== "N/A"
-      ? movie.Poster
-      : "./img/default_poster.jpg";
-
+   // here check if movie.Poster got value which means true the check if it !== "N/A".
+  const posterUrl = getPosterUrl(movie)
+ 
   //  prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
   const posterHTML = posterUrl
     ? `  <img
@@ -242,10 +245,7 @@ moviesGrid.addEventListener("click", (e) => {
 function renderMovieModal(movie) {
   const genres = movie.Genre ? movie.Genre.split(",") : [];
   const isFav = favorites.some((f) => f.imdbID === movie.imdbID);
-  const posterUrl =
-    movie.Poster && movie.Poster !== "N/A"
-      ? movie.Poster
-      : "./img/default_poster.jpg";
+  const posterUrl = getPosterUrl(movie);
 
   const posterHTML = posterUrl
     ? ` <img
