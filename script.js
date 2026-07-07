@@ -37,6 +37,9 @@ const navFavorites = document.getElementById("nav-favorites");
 
 let currentMovies = [];
 let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
+let currentMovieDetails = null;
+
+
 
 console.log(`${BASE_URL}?apikey=${API_KEY}&s=batman`);
 console.log(`${BASE_URL}?apikey=${API_KEY}&i=tt0372784&plot=full`);
@@ -110,7 +113,7 @@ function renderMovies(movies, container) {
   container.innerHTML = ``;
 
   movies.forEach((movie) => {
-    const isfav = favorites.some((f) => f.imdbID === movie.imdbID); //some() = true or fals of if isfave is true so isfavorite is active
+    const isfav = favorites.some((f) => f.imdbID === movie.imdbID); //some() = true or falsE of if isfave is true so isfavorite is active
     const card = createMovieCard(movie, isfav);
     container.appendChild(card);
   });
@@ -156,6 +159,11 @@ function createMovieCard(movie, isFavorite) {
 
   return card;
 }
+
+// ==================================================
+//  TOGGLE FAVORITES
+// ==================================================
+
 moviesGrid.addEventListener("click", (e) => {
   const favButton = e.target.closest(".fav-btn");
 
@@ -170,10 +178,9 @@ moviesGrid.addEventListener("click", (e) => {
 function toggleFavorite(movieId, favBtn) {
   const index = favorites.findIndex((movie) => movie.imdbID === movieId);
 
-  const movie = currentMovies.find((movie) => movie.imdbID === movieId);
-
   if (index === -1) {
     // add to favorites
+    const movie = currentMovies.find((movie) => movie.imdbID === movieId);
     favorites.push(movie);
   } else {
     // remove from favorites
@@ -184,4 +191,29 @@ function toggleFavorite(movieId, favBtn) {
 
   // Update the heart button
   favBtn.classList.toggle("active");
+}
+
+// ==================================================
+//  MODAL
+// ==================================================
+
+async function fetchMovieDetails(movieId) {
+  modal.classList("show");
+
+  modalBody.innerHTML = `
+  <div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px;">
+      <div class="spinner"></div>
+  </div>
+`;
+
+  try {
+    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}&i=${movieId}&plot=full`);
+    const data = await response.json();
+
+    if(data.Response === 'True') {
+      currentMovieDetails = data;
+    }
+  } catch(error) {
+    console.log("Detail error:", error);
+  }
 }
