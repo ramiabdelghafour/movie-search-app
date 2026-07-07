@@ -39,8 +39,6 @@ let currentMovies = [];
 let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
 let currentMovieDetails = null;
 
-
-
 console.log(`${BASE_URL}?apikey=${API_KEY}&s=batman`);
 console.log(`${BASE_URL}?apikey=${API_KEY}&i=tt0372784&plot=full`);
 
@@ -52,12 +50,14 @@ function showState(stateName) {
   emptyState.classList.remove("show");
   noResults.classList.remove("show");
   fetchError.classList.remove("show");
+  modal.classList.remove("show");
 
   if (stateName === "error") errorMsg.classList.add("show");
   else if (stateName === "loading") loader.classList.add("show");
   else if (stateName === "empty") emptyState.classList.add("show");
   else if (stateName === "noResults") noResults.classList.add("show");
   else if (stateName === "fetchError") fetchError.classList.add("show");
+  else if (stateName === "modal") modal.classList.add("show");
 }
 
 // ==================================================
@@ -164,16 +164,7 @@ function createMovieCard(movie, isFavorite) {
 //  TOGGLE FAVORITES
 // ==================================================
 
-moviesGrid.addEventListener("click", (e) => {
-  const favButton = e.target.closest(".fav-btn");
 
-  if (!favButton) return;
-
-  const card = favButton.closest(".movie-card");
-  const movieId = card.dataset.imdbId;
-
-  toggleFavorite(movieId, favButton);
-});
 
 function toggleFavorite(movieId, favBtn) {
   const index = favorites.findIndex((movie) => movie.imdbID === movieId);
@@ -197,8 +188,8 @@ function toggleFavorite(movieId, favBtn) {
 //  MODAL
 // ==================================================
 
-async function fetchMovieDetails(movieId) {
-  modal.classList("show");
+async function fetchMovieDetails(imdbID) {
+  showState("modal");
 
   modalBody.innerHTML = `
   <div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px;">
@@ -207,13 +198,102 @@ async function fetchMovieDetails(movieId) {
 `;
 
   try {
-    const response = await fetch(`${BASE_URL}?apikey=${API_KEY}&i=${movieId}&plot=full`);
+    const response = await fetch(
+      `${BASE_URL}?apikey=${API_KEY}&i=${imdbID}&plot=full`,
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch data");
+
     const data = await response.json();
 
-    if(data.Response === 'True') {
+    if (data.Response === "True") {
       currentMovieDetails = data;
+      renderMovieModal(currentMovieDetails);
     }
-  } catch(error) {
+  } catch (error) {
     console.log("Detail error:", error);
+    showState("fetchError");
   }
+}
+
+
+moviesGrid.addEventListener("click", (e) => {
+  const favButton = e.target.closest(".fav-btn");
+
+  if (!favButton) return;
+
+  const card = favButton.closest(".movie-card");
+  const movieId = card.dataset.imdbId;
+
+  toggleFavorite(movieId, favButton);
+});
+
+// -------------- modal addEventlistener --------------
+
+moviesGrid.addEventListener("click", (e) => {
+  const card = e.target.closest(".movie-card");
+  const movieId = card.dataset.imdbId;
+
+  fetchMovieDetails(movieId);
+});
+
+// -------------- render modal --------------
+
+function renderMovieModal(movie) {
+  const genres = movie.Genre ? movie.Genre.split(",") : [];
+  const isFav = favorites.some((f) => f.imdbID === movie.imdbID);
+  const posterUrl =
+    movie.Poster && movie.Poster !== "N/A"
+      ? movie.Poster
+      : "./img/default_poster.jpg";
+
+  const posterHTML = posterUrl
+    ? ` <img
+  src="${posterUrl}"
+  alt="${movie.Title}"
+  class="modal-poster"
+  onerror="this.onerror=null; this.src='./img/default_poster.jpg';">`
+    : `<div class="modal-poster placeholder">🎬</div>`;
+
+  modalBody.innerHTML = ` ${posterHTML}
+        <div class="modal-info">
+          <h2 class="modal-title">${movie.Title}</h2>
+          <div class="modal-meta">
+              <span class="modal-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  ${movie.Year}
+              </span>
+              <span class="modal-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  ${movie.Runtime}
+              </span>
+              <span class="modal-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  ${movie.Rated || "N/A"}
+              </span>
+              <span class="modal-meta-item rating">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                   ${movie.imdbRating || "N/A"}/10
+              </span>
+          </div>
+          <div class="modal-genres">
+            ${genres.map((g) => `<span class = "genre-tag">${g}</span>`).join("")}
+          </div>
+          <p class="modal-plot">${movie.Plot || "No plot available."}</p>
+          <div class="modal-details">
+              <div class="detail-item">
+                  <span class="detail-label">Director</span>
+                  <span class="detail-value">${movie.Director || "N/A"}</span>
+              </div>
+              <div class="detail-item">
+                  <span class="detail-label">Cast</span>
+                  <span class="detail-value">${movie.Actors || "N/A"}</span>
+              </div>
+          </div>
+          <button class="modal-fav-btn ${isFav ? "active" : ""}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            ${isFav ? "Remove from Favorites" : "Add to Favorites"} 
+          </button>
+        
+        </div>`;
 }
