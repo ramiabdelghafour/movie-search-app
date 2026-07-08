@@ -294,3 +294,12 @@ function renderMovieModal(movie) {
         
         </div>`;
 }
+
+
+modal.addEventListener("click", event => {
+  if (!event || event.target === modal || event.target.closest('.modal-close')) {
+          modal.classList.remove('show');
+          document.body.style.overflow = '';
+          currentMovieDetails = null;
+      }
+});
