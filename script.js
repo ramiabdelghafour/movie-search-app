@@ -219,21 +219,17 @@ async function fetchMovieDetails(imdbID) {
 }
 
 moviesGrid.addEventListener("click", (e) => {
-  const favButton = e.target.closest(".fav-btn");
-
-  if (!favButton) return;
-
-  const card = favButton.closest(".movie-card");
-  const movieId = card.dataset.imdbId;
-
-  toggleFavorite(movieId, favButton);
-});
-
-// -------------- modal addEventlistener --------------
-
-moviesGrid.addEventListener("click", (e) => {
   const card = e.target.closest(".movie-card");
+  if (!card) return;
+
   const movieId = card.dataset.imdbId;
+
+  const favBtn = e.target.closest(".fav-btn");
+
+  if (favBtn) {
+    toggleFavorite(movieId, favBtn);// so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    return;
+  }
 
   fetchMovieDetails(movieId);
 });
