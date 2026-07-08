@@ -5,10 +5,10 @@
 const API_KEY = "a1e05814";
 const BASE_URL = "https://www.omdbapi.com/";
 
-function getPosterUrl(movie){
-  if(movie.Poster && movie.Poster !== "N/A"){
-    movie.Poster
-  } else "./img/default_poster.jpg";
+function getPosterUrl(movie) {
+  return movie.Poster && movie.Poster !== "N/A"
+    ? movie.Poster
+    : "./img/default_poster.jpg";
 }
 
 // ===================================================
@@ -132,12 +132,12 @@ function createMovieCard(movie, isFavorite) {
   card.classList.add("movie-card");
   card.dataset.imdbId = movie.imdbID;
 
-   // here check if movie.Poster got value which means true the check if it !== "N/A".
-  const posterUrl = getPosterUrl(movie)
- 
+  // here check if movie.Poster got value which means true the check if it !== "N/A".
+  const posterUrl = getPosterUrl(movie);
+
   //  prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
   const posterHTML = posterUrl
-    ? `  <img
+    ? `<img
     src="${posterUrl}"
     alt="${movie.Title}"
     class="movie-poster"
@@ -166,8 +166,6 @@ function createMovieCard(movie, isFavorite) {
 // ==================================================
 //  TOGGLE FAVORITES
 // ==================================================
-
-
 
 function toggleFavorite(movieId, favBtn) {
   const index = favorites.findIndex((movie) => movie.imdbID === movieId);
@@ -218,7 +216,6 @@ async function fetchMovieDetails(imdbID) {
     showState("fetchError");
   }
 }
-
 
 moviesGrid.addEventListener("click", (e) => {
   const favButton = e.target.closest(".fav-btn");
