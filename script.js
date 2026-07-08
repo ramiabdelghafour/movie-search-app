@@ -34,6 +34,7 @@ const favoritesGrid = document.getElementById("favorites-grid");
 const favEmpty = document.getElementById("fav-empty");
 const favCount = document.getElementById("fav-count");
 
+const logo = document.querySelector(".logo");
 const navHome = document.getElementById("nav-home");
 const navFavorites = document.getElementById("nav-favorites");
 
@@ -295,11 +296,59 @@ function renderMovieModal(movie) {
         </div>`;
 }
 
+// close modal
+modal.addEventListener("click", (event) => {
+  if (
+    !event ||
+    event.target === modal ||
+    event.target.closest(".modal-close")
+  ) {
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+    currentMovieDetails = null;
+  }
+});
 
-modal.addEventListener("click", event => {
-  if (!event || event.target === modal || event.target.closest('.modal-close')) {
-          modal.classList.remove('show');
-          document.body.style.overflow = '';
-          currentMovieDetails = null;
-      }
+// ==================================================
+// PAGE NAVIGATION
+// ==================================================
+
+function showHome() {
+  homePage.style.display = "block";
+  favoritesPage.classList.remove("show");
+
+  navHome.classList.add("active");
+  navFavorites.classList.remove("active");
+
+  document.title = "CineSearch - Movie Search App";
+}
+
+function showFavorites() {
+  homePage.style.display = "none";
+  favoritesPage.classList.add("show");
+
+  navHome.classList.remove("active");
+  navFavorites.classList.add("active");
+
+  document.title = "My Favorites • CineSearch";
+
+  renderMovies(favorites, favoritesGrid);
+
+  favEmpty.classList.toggle("show", favorites.length === 0);
+}
+
+
+navHome.addEventListener("click", (e) => {
+  e.preventDefault();
+  showHome();
+});
+
+navFavorites.addEventListener("click", (e) => {
+  e.preventDefault();
+  showFavorites();
+});
+
+document.querySelector(".logo").addEventListener("click", (e) => {
+  e.preventDefault();
+  showHome();
 });
