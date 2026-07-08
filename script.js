@@ -2,7 +2,7 @@
 //                 CONFIGURATION
 // ===================================================
 
-const API_KEY = "a1e05814";
+const API_KEY = "YOUR_API_KEY_HERE";
 const BASE_URL = "https://www.omdbapi.com/";
 
 function getPosterUrl(movie) {
@@ -46,9 +46,6 @@ let currentMovies = [];
 let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
 let currentMovieDetails = null;
 
-console.log(`${BASE_URL}?apikey=${API_KEY}&s=batman`);
-console.log(`${BASE_URL}?apikey=${API_KEY}&i=tt0372784&plot=full`);
-
 // ================ UI STATE ================
 
 function showState(stateName) {
@@ -82,12 +79,12 @@ searchForm.addEventListener("submit", (e) => {
   }
 
   moviesGrid.innerHTML = "";
-  searchMovies(title);
+  searchMovie(title);
 });
 
 // -------------- movie searching --------------
 
-async function searchMovies(title) {
+async function searchMovie(title) {
   showState("loading");
   try {
     const response = await fetch(
@@ -181,9 +178,14 @@ function toggleFavorite(movieId, favBtn) {
   }
 
   localStorage.setItem("cineFavorites", JSON.stringify(favorites));
+  updateFavCount();
 
   // Update the heart button
   favBtn.classList.toggle("active");
+}
+
+function updateFavCount() {
+  favCount.textContent = `(${favorites.length})`
 }
 
 // ==================================================
@@ -347,4 +349,15 @@ navFavorites.addEventListener("click", (e) => {
 document.querySelector(".logo").addEventListener("click", (e) => {
   e.preventDefault();
   showHome();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateFavCount();
+
+  // Check if API key is set
+  if (API_KEY === 'YOUR_API_KEY_HERE') {
+      console.log('%c⚠️ OMDb API Key Required', 'color: #e50914; font-size: 16px; font-weight: bold;');
+      console.log('%cGet your FREE API key at: http://www.omdbapi.com/apikey.aspx', 'color: #b3b3b3;');
+      console.log('%cThe app will use demo data until you add your key.', 'color: #737373;');
+  }
 });
