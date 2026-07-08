@@ -2,7 +2,7 @@
 //                 CONFIGURATION
 // ===================================================
 
-const API_KEY = "YOUR_API_KEY_HERE";
+const API_KEY = "a1e05814";
 const BASE_URL = "https://www.omdbapi.com/";
 
 function getPosterUrl(movie) {
@@ -221,6 +221,23 @@ async function fetchMovieDetails(imdbID) {
 }
 
 moviesGrid.addEventListener("click", (e) => {
+  const card = e.target.closest(".movie-card");
+  if (!card) return;
+
+  const movieId = card.dataset.imdbId;
+
+  const favBtn = e.target.closest(".fav-btn");
+
+  if (favBtn) {
+    toggleFavorite(movieId, favBtn);// so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    return;
+  }
+
+  fetchMovieDetails(movieId);
+});
+
+
+favoritesGrid.addEventListener("click", (e) => {
   const card = e.target.closest(".movie-card");
   if (!card) return;
 
