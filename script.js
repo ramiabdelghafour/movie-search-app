@@ -44,6 +44,8 @@ const navFavorites = document.getElementById("nav-favorites");
 
 let currentMovies = [];
 let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
+// Remove invalid favorites
+favorites = favorites.filter((movie) => movie && movie.imdbID);
 let currentMovieDetails = null;
 
 // ================ UI STATE ================
@@ -117,8 +119,8 @@ function renderMovies(movies, container) {
   container.innerHTML = ``;
 
   movies.forEach((movie) => {
-    const isfav = favorites.some((f) => f.imdbID === movie.imdbID); //some() = true or falsE of if isfave is true so isfavorite is active
-    const card = createMovieCard(movie, isfav);
+    const isFav = favorites.some((f) => f.imdbID === movie.imdbID); //some() = true or false of if isfave is true so isfavorite is active
+    const card = createMovieCard(movie, isFav);
     container.appendChild(card);
   });
 }
@@ -130,7 +132,7 @@ function createMovieCard(movie, isFavorite) {
   card.classList.add("movie-card");
   card.dataset.imdbId = movie.imdbID;
 
-  // here check if movie.Poster got value which means true the check if it !== "N/A".
+  // check if movie.Poster got value which means true the check if it !== "N/A".
   const posterUrl = getPosterUrl(movie);
 
   //  prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
@@ -171,6 +173,9 @@ function toggleFavorite(movieId, favBtn) {
   if (index === -1) {
     // add to favorites
     const movie = currentMovies.find((movie) => movie.imdbID === movieId);
+
+    if (!movie) return;
+
     favorites.push(movie);
   } else {
     // remove from favorites
@@ -185,7 +190,7 @@ function toggleFavorite(movieId, favBtn) {
 }
 
 function updateFavCount() {
-  favCount.textContent = `(${favorites.length})`
+  favCount.textContent = `(${favorites.length})`;
 }
 
 // ==================================================
@@ -229,13 +234,12 @@ moviesGrid.addEventListener("click", (e) => {
   const favBtn = e.target.closest(".fav-btn");
 
   if (favBtn) {
-    toggleFavorite(movieId, favBtn);// so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    toggleFavorite(movieId, favBtn); // so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
     return;
   }
 
   fetchMovieDetails(movieId);
 });
-
 
 favoritesGrid.addEventListener("click", (e) => {
   const card = e.target.closest(".movie-card");
@@ -246,7 +250,7 @@ favoritesGrid.addEventListener("click", (e) => {
   const favBtn = e.target.closest(".fav-btn");
 
   if (favBtn) {
-    toggleFavorite(movieId, favBtn);// so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    toggleFavorite(movieId, favBtn); // so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
     return;
   }
 
@@ -352,7 +356,6 @@ function showFavorites() {
   favEmpty.classList.toggle("show", favorites.length === 0);
 }
 
-
 navHome.addEventListener("click", (e) => {
   e.preventDefault();
   showHome();
@@ -368,13 +371,22 @@ document.querySelector(".logo").addEventListener("click", (e) => {
   showHome();
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   updateFavCount();
 
   // Check if API key is set
-  if (API_KEY === 'YOUR_API_KEY_HERE') {
-      console.log('%c⚠️ OMDb API Key Required', 'color: #e50914; font-size: 16px; font-weight: bold;');
-      console.log('%cGet your FREE API key at: http://www.omdbapi.com/apikey.aspx', 'color: #b3b3b3;');
-      console.log('%cThe app will use demo data until you add your key.', 'color: #737373;');
+  if (API_KEY === "YOUR_API_KEY_HERE") {
+    console.log(
+      "%c⚠️ OMDb API Key Required",
+      "color: #e50914; font-size: 16px; font-weight: bold;",
+    );
+    console.log(
+      "%cGet your FREE API key at: http://www.omdbapi.com/apikey.aspx",
+      "color: #b3b3b3;",
+    );
+    console.log(
+      "%cThe app will use demo data until you add your key.",
+      "color: #737373;",
+    );
   }
 });
