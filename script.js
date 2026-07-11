@@ -37,6 +37,7 @@ const favCount = document.getElementById("fav-count");
 const logo = document.querySelector(".logo");
 const navHome = document.getElementById("nav-home");
 const navFavorites = document.getElementById("nav-favorites");
+const modalFavBtn = document.querySelector(".modal-fav-btn");
 
 // =====================================
 // STATE MANAGEMENT
@@ -234,7 +235,7 @@ moviesGrid.addEventListener("click", (e) => {
   const favBtn = e.target.closest(".fav-btn");
 
   if (favBtn) {
-    toggleFavorite(movieId, favBtn); // so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    toggleFavorite(movieId, favBtn); //target only the fav icon it count as favorite then return no need to display the movie's card details
     return;
   }
 
@@ -250,7 +251,7 @@ favoritesGrid.addEventListener("click", (e) => {
   const favBtn = e.target.closest(".fav-btn");
 
   if (favBtn) {
-    toggleFavorite(movieId, favBtn); // so here when the cursor taget only the fav icon it count as favorite then retun no need to display the movie's card details
+    toggleFavorite(movieId, favBtn); 
     return;
   }
 
@@ -328,6 +329,22 @@ modal.addEventListener("click", (event) => {
   }
 });
 
+modalFavBtn.addEventListener("click", () => {
+  if (!currentMovieDetails) return;
+
+  const movieId = currentMovieDetails.imdbID;
+  toggleFavorite(movieId, modalFavBtn);
+
+  // Update the button text and icon
+  const isFav = favorites.some((f) => f.imdbID === movieId);
+  modalFavBtn.classList.toggle("active", isFav);
+  modalFavBtn.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="${
+      isFav ? "currentColor" : "none"
+    }" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l 1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    ${isFav ? "Remove from Favorites" : "Add to Favorites"}
+  `;
+});
 // ==================================================
 // PAGE NAVIGATION
 // ==================================================
@@ -366,7 +383,7 @@ navFavorites.addEventListener("click", (e) => {
   showFavorites();
 });
 
-document.querySelector(".logo").addEventListener("click", (e) => {
+logo.addEventListener("click", (e) => {
   e.preventDefault();
   showHome();
 });
