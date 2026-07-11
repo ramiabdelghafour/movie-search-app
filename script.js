@@ -1,18 +1,12 @@
 // ===================================================
-//                 CONFIGURATION
+// CONFIGURATION
 // ===================================================
 
 const API_KEY = "a1e05814";
 const BASE_URL = "https://www.omdbapi.com/";
 
-function getPosterUrl(movie) {
-  return movie.Poster && movie.Poster !== "N/A"
-    ? movie.Poster
-    : "./img/default_poster.jpg";
-}
-
 // ===================================================
-//                  DOM ELEMENTS
+// DOM ELEMENTS
 // ===================================================
 
 const searchForm = document.getElementById("search-form");
@@ -37,10 +31,9 @@ const favCount = document.getElementById("fav-count");
 const logo = document.querySelector(".logo");
 const navHome = document.getElementById("nav-home");
 const navFavorites = document.getElementById("nav-favorites");
-const modalFavBtn = document.querySelector(".modal-fav-btn");
 
 // =====================================
-// STATE MANAGEMENT
+// APPLICATION STATE
 // =====================================
 
 let currentMovies = [];
@@ -49,7 +42,25 @@ let favorites = JSON.parse(localStorage.getItem("cineFavorites")) || [];
 favorites = favorites.filter((movie) => movie && movie.imdbID);
 let currentMovieDetails = null;
 
-// ================ UI STATE ================
+// ===================================================
+// HELPER FUNCTIONS
+// Small reusable functions
+// ===================================================
+
+function getPosterUrl(movie) {
+  return movie.Poster && movie.Poster !== "N/A"
+    ? movie.Poster
+    : "./img/default_poster.jpg";
+}
+
+function updateFavCount() {
+  favCount.textContent = `(${favorites.length})`;
+}
+
+// ===================================================
+// UI FUNCTIONS
+// Functions responsible only for the interface
+// ===================================================
 
 function showState(stateName) {
   errorMsg.classList.remove("show");
@@ -67,55 +78,6 @@ function showState(stateName) {
   else if (stateName === "modal") modal.classList.add("show");
 }
 
-// ==================================================
-// SEARCH FUNCTIONALITY
-// ==================================================
-
-searchForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const title = searchInput.value.trim();
-
-  if (!title) {
-    showState("error");
-    searchInput.focus();
-    return;
-  }
-
-  moviesGrid.innerHTML = "";
-  searchMovie(title);
-});
-
-// -------------- movie searching --------------
-
-async function searchMovie(title) {
-  showState("loading");
-  try {
-    const response = await fetch(
-      `${BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent(title)}&type=movie`,
-    );
-
-    if (!response.ok) throw new Error("Failed to fetch data");
-
-    const data = await response.json();
-
-    if (data.Response === "False") {
-      showState("noResults");
-      currentMovies = [];
-      moviesGrid.innerHTML = "";
-    } else {
-      currentMovies = data.Search || [];
-      renderMovies(currentMovies, moviesGrid);
-      showState("results");
-    }
-  } catch (error) {
-    showState("fetchError");
-    currentMovies = [];
-    moviesGrid.innerHTML = "";
-  }
-}
-
-// -------------- display movies cards --------------
-
 function renderMovies(movies, container) {
   container.innerHTML = ``;
 
@@ -126,8 +88,6 @@ function renderMovies(movies, container) {
   });
 }
 
-// -------------- create movie card --------------
-
 function createMovieCard(movie, isFavorite) {
   const card = document.createElement("div");
   card.classList.add("movie-card");
@@ -136,7 +96,7 @@ function createMovieCard(movie, isFavorite) {
   // check if movie.Poster got value which means true the check if it !== "N/A".
   const posterUrl = getPosterUrl(movie);
 
-  //  prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
+  // prevent broken image icons for removed or unavailable Amazon poster URLs buy using onerror.
   const posterHTML = posterUrl
     ? `<img
     src="${posterUrl}"
@@ -146,7 +106,6 @@ function createMovieCard(movie, isFavorite) {
   `
     : `<div class="movie-poster">🎬</div>`;
 
-  // card's HTML
   card.innerHTML = `${posterHTML}
     <button class="fav-btn ${isFavorite ? "active" : ""}" > 
         <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -163,102 +122,6 @@ function createMovieCard(movie, isFavorite) {
 
   return card;
 }
-
-// ==================================================
-//  TOGGLE FAVORITES
-// ==================================================
-
-function toggleFavorite(movieId, favBtn) {
-  const index = favorites.findIndex((movie) => movie.imdbID === movieId);
-
-  if (index === -1) {
-    // add to favorites
-    const movie = currentMovies.find((movie) => movie.imdbID === movieId);
-
-    if (!movie) return;
-
-    favorites.push(movie);
-  } else {
-    // remove from favorites
-    favorites.splice(index, 1);
-  }
-
-  localStorage.setItem("cineFavorites", JSON.stringify(favorites));
-  updateFavCount();
-
-  // Update the heart button
-  favBtn.classList.toggle("active");
-}
-
-function updateFavCount() {
-  favCount.textContent = `(${favorites.length})`;
-}
-
-// ==================================================
-//  MODAL
-// ==================================================
-
-async function fetchMovieDetails(imdbID) {
-  showState("modal");
-
-  modalBody.innerHTML = `
-  <div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px;">
-      <div class="spinner"></div>
-  </div>
-`;
-
-  try {
-    const response = await fetch(
-      `${BASE_URL}?apikey=${API_KEY}&i=${imdbID}&plot=full`,
-    );
-
-    if (!response.ok) throw new Error("Failed to fetch data");
-
-    const data = await response.json();
-
-    if (data.Response === "True") {
-      currentMovieDetails = data;
-      renderMovieModal(currentMovieDetails);
-    }
-  } catch (error) {
-    console.log("Detail error:", error);
-    showState("fetchError");
-  }
-}
-
-moviesGrid.addEventListener("click", (e) => {
-  const card = e.target.closest(".movie-card");
-  if (!card) return;
-
-  const movieId = card.dataset.imdbId;
-
-  const favBtn = e.target.closest(".fav-btn");
-
-  if (favBtn) {
-    toggleFavorite(movieId, favBtn); //target only the fav icon it count as favorite then return no need to display the movie's card details
-    return;
-  }
-
-  fetchMovieDetails(movieId);
-});
-
-favoritesGrid.addEventListener("click", (e) => {
-  const card = e.target.closest(".movie-card");
-  if (!card) return;
-
-  const movieId = card.dataset.imdbId;
-
-  const favBtn = e.target.closest(".fav-btn");
-
-  if (favBtn) {
-    toggleFavorite(movieId, favBtn); 
-    return;
-  }
-
-  fetchMovieDetails(movieId);
-});
-
-// -------------- render modal --------------
 
 function renderMovieModal(movie) {
   const genres = movie.Genre ? movie.Genre.split(",") : [];
@@ -316,38 +179,111 @@ function renderMovieModal(movie) {
         </div>`;
 }
 
-// close modal
-modal.addEventListener("click", (event) => {
-  if (
-    !event ||
-    event.target === modal ||
-    event.target.closest(".modal-close")
-  ) {
-    modal.classList.remove("show");
-    document.body.style.overflow = "";
-    currentMovieDetails = null;
+// ===================================================
+// API FUNCTIONS
+// Responsible for communicating with OMDb
+// ===================================================
+
+async function searchMovie(title) {
+  showState("loading");
+  try {
+    const response = await fetch(
+      `${BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent(title)}&type=movie`,
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch data");
+
+    const data = await response.json();
+
+    if (data.Response === "False") {
+      showState("noResults");
+      currentMovies = [];
+      moviesGrid.innerHTML = "";
+    } else {
+      currentMovies = data.Search || [];
+      renderMovies(currentMovies, moviesGrid);
+      showState("results");
+    }
+  } catch (error) {
+    showState("fetchError");
+    currentMovies = [];
+    moviesGrid.innerHTML = "";
   }
-});
+}
 
-modalFavBtn.addEventListener("click", () => {
-  if (!currentMovieDetails) return;
+async function fetchMovieDetails(imdbID) {
+  showState("modal");
 
-  const movieId = currentMovieDetails.imdbID;
-  toggleFavorite(movieId, modalFavBtn);
+  modalBody.innerHTML = `
+  <div style="grid-column: 1 / -1; display: flex; justify-content: center; padding: 60px;">
+      <div class="spinner"></div>
+  </div>
+`;
 
-  // Update the button text and icon
-  const isFav = favorites.some((f) => f.imdbID === movieId);
-  modalFavBtn.classList.toggle("active", isFav);
-  modalFavBtn.innerHTML = `
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="${
-      isFav ? "currentColor" : "none"
-    }" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l 1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-    ${isFav ? "Remove from Favorites" : "Add to Favorites"}
-  `;
-});
-// ==================================================
+  try {
+    const response = await fetch(
+      `${BASE_URL}?apikey=${API_KEY}&i=${imdbID}&plot=full`,
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch data");
+
+    const data = await response.json();
+
+    if (data.Response === "True") {
+      currentMovieDetails = data;
+      renderMovieModal(currentMovieDetails);
+    }
+  } catch (error) {
+    console.log("Detail error:", error);
+    showState("fetchError");
+  }
+}
+
+// ===================================================
+// FAVORITES
+// ===================================================
+
+function toggleFavorite(movieId, favBtn) {
+  const index = favorites.findIndex((movie) => movie.imdbID === movieId);
+
+  if (index === -1) {
+    const movie =
+      currentMovies.find((movie) => movie.imdbID === movieId) ||
+      (currentMovieDetails && currentMovieDetails.imdbID === movieId
+        ? currentMovieDetails
+        : null);
+
+    if (!movie) return;
+
+    favorites.push(movie);
+  } else {
+    favorites.splice(index, 1);
+  }
+
+  localStorage.setItem("cineFavorites", JSON.stringify(favorites));
+  updateFavCount();
+
+  if (favBtn) favBtn.classList.toggle("active");
+
+  if (favoritesPage.classList.contains("show")) {
+    renderMovies(favorites, favoritesGrid);
+    favEmpty.classList.toggle("show", favorites.length === 0);
+  }
+
+  if (favoritesPage.classList.contains("show")) {
+    renderMovies(favorites, favoritesGrid);
+    favEmpty.classList.toggle("show", favorites.length === 0);
+  }
+
+  if (navHome.classList.contains("active")) {
+    renderMovies(currentMovies, moviesGrid);
+    favEmpty.classList.toggle("show", favorites.length === 0);
+  }
+}
+
+// ===================================================
 // PAGE NAVIGATION
-// ==================================================
+// ===================================================
 
 function showHome() {
   homePage.style.display = "block";
@@ -373,6 +309,87 @@ function showFavorites() {
   favEmpty.classList.toggle("show", favorites.length === 0);
 }
 
+// ===================================================
+// EVENT LISTENERS
+// All user interactions
+// ===================================================
+
+searchForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const title = searchInput.value.trim();
+
+  if (!title) {
+    showState("error");
+    searchInput.focus();
+    return;
+  }
+
+  moviesGrid.innerHTML = "";
+  searchMovie(title);
+});
+
+moviesGrid.addEventListener("click", (e) => {
+  const card = e.target.closest(".movie-card");
+  if (!card) return;
+
+  const movieId = card.dataset.imdbId;
+
+  const favBtn = e.target.closest(".fav-btn");
+
+  if (favBtn) {
+    toggleFavorite(movieId, favBtn); //target only the fav icon it count as favorite then return no need to display the movie's card details
+    return;
+  }
+
+  fetchMovieDetails(movieId);
+});
+
+favoritesGrid.addEventListener("click", (e) => {
+  const card = e.target.closest(".movie-card");
+  if (!card) return;
+
+  const movieId = card.dataset.imdbId;
+
+  const favBtn = e.target.closest(".fav-btn");
+
+  if (favBtn) {
+    toggleFavorite(movieId, favBtn);
+    return;
+  }
+
+  fetchMovieDetails(movieId);
+});
+
+modal.addEventListener("click", (event) => {
+  const modalFavBtn = event.target.closest(".modal-fav-btn");
+  if (modalFavBtn) {
+    if (!currentMovieDetails) return;
+
+    const movieId = currentMovieDetails.imdbID;
+    toggleFavorite(movieId, modalFavBtn);
+
+    const isFav = favorites.some((f) => f.imdbID === movieId);
+    modalFavBtn.classList.toggle("active", isFav);
+    modalFavBtn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="${
+        isFav ? "currentColor" : "none"
+      }" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l 1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      ${isFav ? "Remove from Favorites" : "Add to Favorites"}
+    `;
+    return;
+  }
+
+  if (
+    !event ||
+    event.target === modal ||
+    event.target.closest(".modal-close")
+  ) {
+    modal.classList.remove("show");
+    document.body.style.overflow = "";
+    currentMovieDetails = null;
+  }
+});
+
 navHome.addEventListener("click", (e) => {
   e.preventDefault();
   showHome();
@@ -387,6 +404,11 @@ logo.addEventListener("click", (e) => {
   e.preventDefault();
   showHome();
 });
+
+// ===================================================
+// INITIALIZATION
+// App starts here
+// ===================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   updateFavCount();
