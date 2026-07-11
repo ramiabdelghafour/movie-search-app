@@ -97,9 +97,7 @@ const API_KEY = "YOUR_API_KEY_HERE";
 
 ---
 
-## 📚 What I Learned
-
-This project helped me practice:
+## 📚 Best Practice of:
 
 - DOM Manipulation
 - Event Delegation
@@ -136,12 +134,6 @@ This project helped me practice:
 ### Favorites
 
 ![Favorites](./screenshots/favorites.png)
-
----
-
-## 📄 License
-
-This project is open source and available under the MIT License.
 
 ---
 
