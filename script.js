@@ -2,7 +2,7 @@
 // CONFIGURATION
 // ===================================================
 
-const API_KEY = "a1e05814";
+const API_KEY = "YOUR_API_KEY_HERE";
 const BASE_URL = "https://www.omdbapi.com/";
 
 // ===================================================
@@ -234,7 +234,7 @@ async function fetchMovieDetails(imdbID) {
       renderMovieModal(currentMovieDetails);
     }
   } catch (error) {
-    console.log("Detail error:", error);
+    console.error("Detail error:", error);
     showState("fetchError");
   }
 }
@@ -293,6 +293,13 @@ function showHome() {
   navFavorites.classList.remove("active");
 
   document.title = "CineSearch - Movie Search App";
+
+  if (currentMovies.length > 0) {
+    renderMovies(currentMovies, moviesGrid);
+  } else {
+    moviesGrid.innerHTML = "";
+    showState("empty");
+  } 
 }
 
 function showFavorites() {
